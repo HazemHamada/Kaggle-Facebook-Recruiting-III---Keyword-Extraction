@@ -106,7 +106,9 @@ model = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True)),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
+    tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(150, activation='sigmoid')
 ])
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
