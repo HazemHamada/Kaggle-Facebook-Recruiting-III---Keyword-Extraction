@@ -1,35 +1,14 @@
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from tqdm import tqdm
-import pandas as pd
-from sklearn.model_selection import train_test_split
-import tensorflow as tf
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from sklearn.preprocessing import LabelEncoder
-from sklearn import metrics
-import lightgbm as lgb
-from sklearn import tree
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import SelectFromModel
-from sklearn.svm import LinearSVC
-from sklearn import svm
-from sklearn.neural_network import MLPClassifier
-from sklearn.pipeline import Pipeline
-import matplotlib.pyplot as plt
-from sklearn import preprocessing
-from sklearn.preprocessing import FunctionTransformer
-from nltk.tokenize import word_tokenize
-import gc
 import re
-import seaborn as sns
-import nltk
+import warnings
+import pandas as pd
+import tensorflow as tf
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
-from sklearn.linear_model import SGDClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score,precision_score,recall_score
-import warnings
+from nltk.tokenize import word_tokenize
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tqdm import tqdm
 
 vocab_size = 10000
 embedding_dim = 32
@@ -43,7 +22,7 @@ warnings.filterwarnings("error", message=".*check_inverse*.", category=UserWarni
 dataAll = pd.read_csv("Train.csv")
 dataAll, data = train_test_split(dataAll, test_size=0.2, random_state=1)
 
-data, test = train_test_split(dataAll, test_size=0.2, random_state=1)
+#data, test = train_test_split(dataAll, test_size=0.2, random_state=1)
 del dataAll
 
 
@@ -55,7 +34,7 @@ qus_list=[]
 qus_with_code = 0
 len_before_preprocessing = 0
 len_after_preprocessing = 0
-for index,row in tqdm(data.iterrows()):
+for index,row in data.iterrows():
     title, body, tags = row["Title"], row["Body"], row["Tags"]
     if '<code>' in body:
         qus_with_code+=1
@@ -79,16 +58,34 @@ data = data[["question","Tags"]]
 print("Shape of preprocessed data :", data.shape)
 
 
+######################################################################
+data, test = train_test_split(data, test_size=0.2, random_state=1)
+questionTrain = data['question']
+tagsTrain = data['Tags']
+questionTest = test['question']
+tagsTest = test['Tags']
+
+
 tokenizer = Tokenizer(num_words=vocab_size, oov_token=oov_tok)
 tokenizer.fit_on_texts(data)
 
 word_index = tokenizer.word_index
 
-training_sequences = tokenizer.texts_to_sequences(data)
-training_padded = pad_sequences(training_sequences, padding=padding_type, truncating=trunc_type)
+del data
+del test
 
-testing_sequences = tokenizer.texts_to_sequences(test)
-testing_padded = pad_sequences(testing_sequences, padding=padding_type, truncating=trunc_type)
+
+questionTrain_sequences = tokenizer.texts_to_sequences(questionTrain)
+questionTrain_padded = pad_sequences(questionTrain, padding=padding_type, truncating=trunc_type)
+
+tagsTrain_sequences = tokenizer.texts_to_sequences(tagsTrain)
+tagsTrain_padded = pad_sequences(tagsTrain, padding=padding_type, truncating=trunc_type)
+
+questionTest_sequences = tokenizer.texts_to_sequences(questionTest)
+questionTest_padded = pad_sequences(questionTest, padding=padding_type, truncating=trunc_type)
+
+tagsTest_sequences = tokenizer.texts_to_sequences(tagsTest)
+tagsTest_padded = pad_sequences(tagsTest, padding=padding_type, truncating=trunc_type)
 
 BUFFER_SIZE = 10000
 BATCH_SIZE = 64
@@ -105,7 +102,7 @@ model.summary()
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 NUM_EPOCHS = 10
-history = model.fit(data, epochs=NUM_EPOCHS, validation_data=test)
+history = model.fit(questionTrain_padded, tagsTrain_padded, epochs=num_epochs, validation_data=(questionTest_padded, tagsTest_padded), verbose=1)
 
 import matplotlib.pyplot as plt
 
@@ -121,6 +118,9 @@ def plot_graphs(history, string):
 plot_graphs(history, 'accuracy')
 
 plot_graphs(history, 'loss')
+
+
+
 
 
 
