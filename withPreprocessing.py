@@ -13,7 +13,7 @@ import gc
 from tqdm import tqdm
 
 vocab_size = 10000
-embedding_dim = 32
+embedding_dim = 64
 trunc_type='post'
 padding_type='post'
 oov_tok = "<OOV>"
@@ -23,9 +23,8 @@ warnings.filterwarnings("ignore")
 warnings.filterwarnings("error", message=".*check_inverse*.", category=UserWarning, append=False)
 
 dataAll = pd.read_csv("Train.csv")
-dataAll, data = train_test_split(dataAll, test_size=0.2, random_state=1)
+dataAll, data = train_test_split(dataAll, test_size=0.1, random_state=1)
 
-#data, test = train_test_split(data, test_size=0.2, random_state=1)
 del dataAll
 
 
@@ -37,7 +36,7 @@ qus_list=[]
 qus_with_code = 0
 len_before_preprocessing = 0
 len_after_preprocessing = 0
-for index,row in data.iterrows():
+for index,row in tqdm(data.iterrows()):  # using tqdm for fasting the loop
     title, body, tags = row["Title"], row["Body"], row["Tags"]
     if '<code>' in body:
         qus_with_code+=1

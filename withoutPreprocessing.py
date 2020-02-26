@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore")
 warnings.filterwarnings("error", message=".*check_inverse*.", category=UserWarning, append=False)
 
 dataAll = pd.read_csv("Train.csv")
-dataAll, data = train_test_split(dataAll, test_size=0.2, random_state=1)
+dataAll, data = train_test_split(dataAll, test_size=0.1, random_state=1)
 del dataAll
 
 data, test = train_test_split(data, test_size=0.2, random_state=1)
