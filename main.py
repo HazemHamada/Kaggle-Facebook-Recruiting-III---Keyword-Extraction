@@ -23,6 +23,7 @@ from nltk.tokenize import word_tokenize
 import gc
 import re
 import seaborn as sns
+import nltk
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 from sklearn.linear_model import SGDClassifier

@@ -19,6 +19,7 @@ from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
 from sklearn.preprocessing import FunctionTransformer
+import nltk
 from nltk.tokenize import word_tokenize
 import gc
 import re
