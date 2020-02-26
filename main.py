@@ -8,6 +8,8 @@ from nltk.tokenize import word_tokenize
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.preprocessing.text import Tokenizer
+import matplotlib.pyplot as plt
+import gc
 from tqdm import tqdm
 
 vocab_size = 10000
@@ -15,6 +17,7 @@ embedding_dim = 32
 trunc_type='post'
 padding_type='post'
 oov_tok = "<OOV>"
+max_length = 200
 
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("error", message=".*check_inverse*.", category=UserWarning, append=False)
@@ -22,7 +25,7 @@ warnings.filterwarnings("error", message=".*check_inverse*.", category=UserWarni
 dataAll = pd.read_csv("Train.csv")
 dataAll, data = train_test_split(dataAll, test_size=0.2, random_state=1)
 
-#data, test = train_test_split(dataAll, test_size=0.2, random_state=1)
+#data, test = train_test_split(data, test_size=0.2, random_state=1)
 del dataAll
 
 
@@ -59,6 +62,8 @@ print("Shape of preprocessed data :", data.shape)
 
 
 ######################################################################
+gc.collect()
+
 data, test = train_test_split(data, test_size=0.2, random_state=1)
 questionTrain = data['question']
 tagsTrain = data['Tags']
@@ -76,36 +81,40 @@ del test
 
 
 questionTrain_sequences = tokenizer.texts_to_sequences(questionTrain)
-questionTrain_padded = pad_sequences(questionTrain, padding=padding_type, truncating=trunc_type)
+del questionTrain
+questionTrain_padded = pad_sequences(questionTrain_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
 
+tagsTrain=tagsTrain.astype('str')
 tagsTrain_sequences = tokenizer.texts_to_sequences(tagsTrain)
-tagsTrain_padded = pad_sequences(tagsTrain, padding=padding_type, truncating=trunc_type)
+del tagsTrain
+tagsTrain_padded = pad_sequences(tagsTrain_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
 
 questionTest_sequences = tokenizer.texts_to_sequences(questionTest)
-questionTest_padded = pad_sequences(questionTest, padding=padding_type, truncating=trunc_type)
+del questionTest
+questionTest_padded = pad_sequences(questionTest_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
 
+tagsTest=tagsTest.astype('str')
 tagsTest_sequences = tokenizer.texts_to_sequences(tagsTest)
-tagsTest_padded = pad_sequences(tagsTest, padding=padding_type, truncating=trunc_type)
+del tagsTest
+tagsTest_padded = pad_sequences(tagsTest_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
+
+
 
 BUFFER_SIZE = 10000
 BATCH_SIZE = 64
 model = tf.keras.Sequential([
-    tf.keras.layers.Embedding(tokenizer.vocab_size, 64),
+    tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True)),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
     tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(150, activation='sigmoid')
 ])
-
-model.summary()
-
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 NUM_EPOCHS = 10
-history = model.fit(questionTrain_padded, tagsTrain_padded, epochs=num_epochs, validation_data=(questionTest_padded, tagsTest_padded), verbose=1)
+history = model.fit(questionTrain_padded, tagsTrain_padded, epochs=NUM_EPOCHS, validation_data=(questionTest_padded, tagsTest_padded), verbose=1)
 
-import matplotlib.pyplot as plt
-
+gc.collect()
 
 def plot_graphs(history, string):
   plt.plot(history.history[string])
