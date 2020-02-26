@@ -114,6 +114,8 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 NUM_EPOCHS = 10
 history = model.fit(questionTrain_padded, tagsTrain_padded, epochs=NUM_EPOCHS, validation_data=(questionTest_padded, tagsTest_padded), verbose=1)
 
+results = model.evaluate(questionTest_padded, tagsTest_padded, batch_size=BATCH_SIZE)
+
 gc.collect()
 
 def plot_graphs(history, string):
