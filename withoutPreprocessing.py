@@ -46,37 +46,9 @@ data, test = train_test_split(dataAll, test_size=0.2, random_state=1)
 del dataAll
 
 
-# preprocessing
-
-stop_words = set(stopwords.words('english'))
-stemmer = SnowballStemmer("english")
-qus_list=[]
-qus_with_code = 0
-len_before_preprocessing = 0
-len_after_preprocessing = 0
-for index,row in tqdm(data.iterrows()):
-    title, body, tags = row["Title"], row["Body"], row["Tags"]
-    if '<code>' in body:
-        qus_with_code+=1
-    len_before_preprocessing+=len(title) + len(body)
-    body=re.sub('<code>(.*?)</code>', '', body, flags=re.MULTILINE|re.DOTALL)
-    body = re.sub('<.*?>', ' ', str(body.encode('utf-8')))
-    title=title.encode('utf-8')
-    question=str(title)+" "+str(body)
-    question=re.sub(r'[^A-Za-z]+',' ',question)
-    words=word_tokenize(str(question.lower()))
-    question=' '.join(str(stemmer.stem(j)) for j in words if j not in stop_words and (len(j)!=1 or j=='c'))
-    qus_list.append(question)
-    len_after_preprocessing += len(question)
-data["question"] = qus_list
-avg_len_before_preprocessing=(len_before_preprocessing*1.0)/data.shape[0]
-avg_len_after_preprocessing=(len_after_preprocessing*1.0)/data.shape[0]
-print( "Avg. length of questions(Title+Body) before preprocessing: ", avg_len_before_preprocessing)
-print( "Avg. length of questions(Title+Body) after preprocessing: ", avg_len_after_preprocessing)
-print ("% of questions containing code: ", (qus_with_code*100.0)/data.shape[0])
-data = data[["question","Tags"]]
-print("Shape of preprocessed data :", data.shape)
-
+question = data['Title']+data['Body']
+tags=data['Tags']
+data=tags.join(question)
 
 tokenizer = Tokenizer(num_words=vocab_size, oov_token=oov_tok)
 tokenizer.fit_on_texts(data)
