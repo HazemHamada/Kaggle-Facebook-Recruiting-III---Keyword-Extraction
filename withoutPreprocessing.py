@@ -67,12 +67,14 @@ model = tf.keras.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True)),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(32)),
+    tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dropout(0.1),
     tf.keras.layers.Dense(150, activation='sigmoid')
 ])
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-NUM_EPOCHS = 10
+NUM_EPOCHS = 5
 history = model.fit(questionTrain_padded, tagsTrain_padded, epochs=NUM_EPOCHS, validation_data=(questionTest_padded, tagsTest_padded), verbose=1)
 
 results = model.evaluate(questionTest_padded, tagsTest_padded, batch_size=BATCH_SIZE)

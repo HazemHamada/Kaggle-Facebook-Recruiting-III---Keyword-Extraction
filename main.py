@@ -111,7 +111,7 @@ model = tf.keras.Sequential([
 ])
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-NUM_EPOCHS = 10
+NUM_EPOCHS = 5
 history = model.fit(questionTrain_padded, tagsTrain_padded, epochs=NUM_EPOCHS, validation_data=(questionTest_padded, tagsTest_padded), verbose=1)
 
 results = model.evaluate(questionTest_padded, tagsTest_padded, batch_size=BATCH_SIZE)
